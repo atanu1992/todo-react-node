@@ -43,7 +43,7 @@ const todoDetailsByIdService = async (id) => {
  */
 const removeTodoService = async (id) => {
   try {
-    const remove = await Todos.update(
+    const [remove] = await Todos.update(
       { status: 'N' },
       {
         where: {
@@ -51,7 +51,6 @@ const removeTodoService = async (id) => {
         },
       }
     );
-    console.log('remove ', remove);
     return remove;
   } catch (error) {
     throw Error(error);
@@ -66,7 +65,7 @@ const removeTodoService = async (id) => {
  */
 const toggleCompleteService = async (id, status) => {
   try {
-    const changeCompleteStatus = await Todos.update(
+    const [changeCompleteStatus] = await Todos.update(
       { status: status },
       {
         where: {
@@ -74,7 +73,29 @@ const toggleCompleteService = async (id, status) => {
         },
       }
     );
-    return changeCompleteStatus;
+    return changeCompleteStatus ? true : false;
+  } catch (error) {
+    throw Error(error);
+  }
+};
+
+/**
+ * Update todo by todo id
+ * @param {id} integer
+ * @param {todoText} string
+ * @returns boolean
+ */
+const updateTodo = async (id, details) => {
+  try {
+    const [updateTodo] = await Todos.update(
+      { todoText: details.todoText },
+      {
+        where: {
+          id: id,
+        },
+      }
+    );
+    return updateTodo ? true : false;
   } catch (error) {
     throw Error(error);
   }
@@ -85,4 +106,5 @@ module.exports = {
   todoDetailsByIdService,
   removeTodoService,
   toggleCompleteService,
+  updateTodo,
 };

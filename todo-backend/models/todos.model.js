@@ -13,24 +13,35 @@ const Todos = sequelize.define(
       autoIncrement: true,
       primaryKey: true,
     },
-    todo: {
-      type: DataTypes.LONGTEXT,
+    todoText: {
+      field: 'todo_text',
+      type: DataTypes.TEXT,
       allowNull: false,
     },
-    email: {
-      type: DataTypes.STRING,
-      unique: true,
+    completed: {
+      type: DataTypes.ENUM,
       allowNull: false,
+      field: 'is_completed',
+      values: ['Y', 'N'],
+      defaultValue: 'N',
     },
     userId: {
       type: DataTypes.INTEGER,
-      field: 'id',
+      field: 'user_id',
+      allowNull: false,
       references: {
         model: Users,
         key: 'id',
       },
       onDelete: 'CASCADE', // Add ON DELETE CASCADE option
       onUpdate: 'CASCADE', // Add ON UPDATE CASCADE option
+    },
+    status: {
+      type: DataTypes.ENUM,
+      allowNull: false,
+      field: 'status',
+      values: ['Y', 'N'],
+      defaultValue: 'Y',
     },
   },
   {

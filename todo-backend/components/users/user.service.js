@@ -1,3 +1,5 @@
+const { createToken } = require('../../middlewares/auth');
+const { verifyEncryptedCode } = require('../../middlewares/bcrypt');
 const { Users, sequelize, Sequelize } = require('../../models/users.model');
 
 /**
@@ -16,7 +18,10 @@ const addNewUserService = async (data) => {
     }
     // add new user
     const newUser = await Users.create(data);
-    const newUserDetails = newUser.toJSON();
+    const newUserDetails = newUser ? newUser.toJSON() : undefined;
+    if (!newUserDetails) {
+      throw Error('Failed to add user');
+    }
     const { id, password, ...details } = newUserDetails;
     return details;
   } catch (error) {
@@ -29,8 +34,27 @@ const addNewUserService = async (data) => {
  * @param id string
  * @returns object
  */
-const userDetailsByIdService = async (id) => {
+// const userDetailsByIdService = async (id) => {
+//   try {
+//   } catch (error) {
+//     throw Error(error);
+//   }
+// };
+
+const loginDetailsService = async (data) => {
   try {
+    let { email, password } = data;
+    const details = await Users.findOne({ where: { email: email } });
+    const currentUser = details ? details.toJSON() : undefined;
+    if (!currentUser) {
+      throw Error('No record found');
+    }
+
+    if (!verifyEncryptedCode(password, currentUser.password)) {
+      throw Error('Invalid credentials');
+    }
+    const token = createToken(currentUser);
+    return { name: currentUser.name, token: token };
   } catch (error) {
     throw Error(error);
   }
@@ -38,5 +62,5 @@ const userDetailsByIdService = async (id) => {
 
 module.exports = {
   addNewUserService,
-  userDetailsByIdService,
+  loginDetailsService,
 };

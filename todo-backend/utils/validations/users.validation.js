@@ -44,7 +44,21 @@ const updateRoleValidationSchema = (userInput, id) => {
   return { value: userInput };
 };
 
+const userLoginValidationSchema = (userInput) => {
+  const schema = Joi.object({
+    email: Joi.string().trim().email().required(),
+    password: Joi.string().required(),
+  });
+  userInput = sanitizeUserInput(userInput);
+  const { error, value } = schema.validate(userInput, joiOptions);
+  if (error) {
+    return errorsFormatter(error);
+  }
+  return { value: userInput };
+};
+
 module.exports = {
   addUserValidationSchema,
   userIdValidationSchema,
+  userLoginValidationSchema,
 };

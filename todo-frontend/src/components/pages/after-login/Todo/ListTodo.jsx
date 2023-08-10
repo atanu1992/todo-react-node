@@ -6,21 +6,21 @@ const ListTodo = () => {
   ];
   return (
     <>
-      <main role="main" className="w-full sm:w-2/3 md:w-3/4 pt-1 px-3">
-        <div className="flex flex-col">
-          <h1 className="p-2">Todo List</h1>
-          <div className="todo-list mt-3">
-            <div className="relative overflow-x-auto">
-              <table className="w-full text-sm text-left text-gray-500">
-                <thead className="text-xs text-gray-700 uppercase bg-gray-50">
+      <main role='main' className='w-full px-3 pt-1 sm:w-2/3 md:w-3/4'>
+        <div className='flex flex-col'>
+          <h1 className='p-2'>Todo List</h1>
+          <div className='mt-3 todo-list'>
+            <div className='relative overflow-x-auto'>
+              <table className='w-full text-sm text-left text-gray-500'>
+                <thead className='text-xs text-gray-700 uppercase bg-gray-50'>
                   <tr>
-                    <th scope="col" className="px-6 py-3">
+                    <th scope='col' className='px-6 py-3'>
                       Todo
                     </th>
-                    <th scope="col" className="px-6 py-3">
+                    <th scope='col' className='px-6 py-3'>
                       Completed
                     </th>
-                    <th scope="col" className="px-6 py-3">
+                    <th scope='col' className='px-6 py-3'>
                       Action
                     </th>
                   </tr>
@@ -29,18 +29,18 @@ const ListTodo = () => {
                   {todoList && todoList.length ? (
                     todoList.map((i, v) => {
                       return (
-                        <tr className="bg-gray-300 border-b">
-                          <td className="px-6 py-4">{v.name}</td>
-                          <td className="px-6 py-4">
+                        <tr key={`list_` + i} className='bg-gray-300 border-b'>
+                          <td className='px-6 py-4'>{v.name}</td>
+                          <td className='px-6 py-4'>
                             {v.completed ? 'Completed' : 'Not completed'}
                           </td>
-                          <td className="px-6 py-4">Edit</td>
+                          <td className='px-6 py-4'>Edit</td>
                         </tr>
                       );
                     })
                   ) : (
-                    <tr className="bg-gray-300 border-b">
-                      <td className="px-6 py-4 text-center" colSpan={3}>
+                    <tr key={`list_all`} className='bg-gray-300 border-b'>
+                      <td className='px-6 py-4 text-center' colSpan={3}>
                         No record found
                       </td>
                     </tr>

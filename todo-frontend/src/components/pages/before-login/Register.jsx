@@ -1,15 +1,60 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import LoginTodo from '../../../assets/images/todo.png';
 import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import { useRef } from 'react';
 
 const Register = () => {
+  let navigation = useNavigate();
+  let messageInitialState = { type: null, message: null };
+  let registerMessage = useRef(messageInitialState);
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm();
   const onSubmit = (data) => {
-    console.log(data);
+    registerMessage.current = messageInitialState;
+    let url = import.meta.env.VITE_API_BASE_URL + 'user/add';
+    return axios
+      .post(url, data)
+      .then(function (response) {
+        if (response.status === 200) {
+          registerMessage.current = {
+            type: 'success',
+            message: 'Registration successfull',
+          };
+
+          setTimeout(() => {
+            registerMessage.current = messageInitialState;
+            navigation('/login');
+          }, 3000);
+        }
+      })
+      .catch(function (error) {
+        if (error?.response?.status === 422) {
+          const { errors } = error.response.data;
+          registerMessage.current = {
+            type: 'error',
+            message: 'Validation error',
+          };
+          if (errors && errors.length) {
+            let errorHtml = '';
+            errors.forEach((v) => {
+              errorHtml += v.message + ', ';
+            });
+            registerMessage.current = {
+              type: 'error',
+              message: errorHtml.replace(/, $/, ''),
+            };
+          }
+        } else {
+          let err = error.message
+            ? error.message
+            : 'Something went wrong. Please try again';
+          registerMessage.current = { type: 'error', message: err };
+        }
+      });
   };
   return (
     <>
@@ -27,6 +72,17 @@ const Register = () => {
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                 Create account
               </h1>
+              {registerMessage && registerMessage.current.message ? (
+                <div
+                  className={`my-2 p-2 w-full text-white rounded-md text-center ${
+                    registerMessage.current.type === 'error'
+                      ? 'bg-red-500'
+                      : 'bg-green-500'
+                  }`}
+                >
+                  {registerMessage.current.message}
+                </div>
+              ) : null}
               <form
                 className="space-y-4 md:space-y-6"
                 onSubmit={handleSubmit(onSubmit)}

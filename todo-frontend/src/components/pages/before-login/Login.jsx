@@ -1,8 +1,12 @@
 import { Link, useNavigate } from 'react-router-dom';
 import LoginTodo from '../../../assets/images/todo.png';
 import { useForm } from 'react-hook-form';
+import axios from 'axios';
+import { useRef } from 'react';
 
 const Login = () => {
+  // const [loginDetails, setLoginDetails] = useState({ data: null, error: null });
+  let loginError = useRef(null);
   let navigation = useNavigate();
   const {
     register,
@@ -11,8 +15,20 @@ const Login = () => {
   } = useForm();
 
   const onLoginSubmit = (data) => {
-    console.log(data);
-    navigation('/todos');
+    loginError.current = null;
+    // let url = import.meta.env.VITE_API_BASE_URL + 'user/login';
+    // return axios
+    //   .post(url, data)
+    //   .then(function (response) {
+    //     console.log(response);
+    //   })
+    //   .catch(function (error) {
+    //     let err = error.message
+    //       ? error.message
+    //       : 'Something went wrong. Please try again';
+    //     loginError.current = err;
+    //   });
+    // navigation('/todos');
   };
 
   return (
@@ -31,6 +47,11 @@ const Login = () => {
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                 Sign in to your account
               </h1>
+              {loginError && loginError.current ? (
+                <div className="my-2 p-2 w-full bg-red-500 text-white rounded-md text-center">
+                  {loginError.current}
+                </div>
+              ) : null}
               <form
                 className="space-y-4 md:space-y-6"
                 onSubmit={handleSubmit(onLoginSubmit)}

@@ -1,9 +1,13 @@
 import { Outlet } from 'react-router-dom';
+// import LoaderLayout from './LoaderLayout';
 
 const AuthLayout = () => {
   return (
     <>
-      <Outlet />
+      <div className="container-fluid mx-auto">
+        {/* <LoaderLayout /> */}
+        <Outlet />
+      </div>
     </>
   );
 };

@@ -1,14 +1,20 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
 import api from '../api';
+import errorHandler from '../errorHandler';
 
 export const login = createAsyncThunk(
   'auth/login',
   async ({ userInput }, { rejectWithValue }) => {
     try {
       const response = await api.post('/user/login', userInput);
-      return response.data;
+      if (response.status === 200 && response?.data?.details) {
+        return response.data.details;
+      } else {
+        throw Error('Invalid Credentials');
+      }
     } catch (err) {
-      return rejectWithValue(err.response.data);
+      let errors = errorHandler(err);
+      return rejectWithValue(errors);
     }
   }
 );
@@ -18,7 +24,6 @@ export const register = createAsyncThunk(
   async ({ userInput }, { rejectWithValue }) => {
     try {
       const response = await api.post('/user/register', userInput);
-
       return response.data;
     } catch (err) {
       return rejectWithValue(err.response.data);
@@ -30,35 +35,41 @@ const authSlice = createSlice({
   name: 'auth',
   initialState: {
     user: null,
+    token: null,
     error: null,
     loading: false,
   },
-
-  extraReducers: {
-    [login.pending]: (state) => {
-      state.loading = true;
+  reducers: {
+    setCredentials: (state, action) => {
+      const { user, token } = action.payload;
+      state.user = user;
+      state.token = token;
     },
-    [login.fulfilled]: (state, action) => {
-      state.loading = false;
-      localStorage.setItem('profile', JSON.stringify({ ...action.payload }));
-      state.user = action.payload;
+    logout: (state) => {
+      state.user = null;
+      state.token = null;
     },
-    [login.rejected]: (state, action) => {
-      state.loading = false;
-      state.error = action.payload.message;
-    },
-    [register.pending]: (state) => {
-      state.loading = true;
-    },
-    [register.fulfilled]: (state, action) => {
-      state.loading = false;
-      localStorage.setItem('profile', JSON.stringify({ ...action.payload }));
-      state.user = action.payload;
-    },
-    [register.rejected]: (state, action) => {
-      state.loading = false;
-      state.error = action.payload.message;
-    },
+  },
+  extraReducers: (builder) => {
+    builder
+      .addCase(login.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(login.fulfilled, (state, action) => {
+        const { user, token } = action.payload;
+        state.loading = false;
+        state.user = user;
+        state.token = token;
+        state.error = null;
+        localStorage.setItem('userToken', token);
+      })
+      .addCase(login.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action?.payload?.message
+          ? action.payload.message
+          : action.error.message;
+      });
   },
 });
 

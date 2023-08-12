@@ -14,13 +14,13 @@ const addNewUserService = async (data) => {
       where: { email: data.email },
     });
     if (checkEmailExist?.toJSON()) {
-      throw Error(`${data.email} already exists`);
+      throw `${data.email} already exists`;
     }
     // add new user
     const newUser = await Users.create(data);
     const newUserDetails = newUser ? newUser.toJSON() : undefined;
     if (!newUserDetails) {
-      throw Error('Failed to add user');
+      throw 'Failed to add user';
     }
     const { id, password, ...details } = newUserDetails;
     return details;
@@ -29,32 +29,19 @@ const addNewUserService = async (data) => {
   }
 };
 
-/**
- * Fetch user details by user unique id
- * @param id string
- * @returns object
- */
-// const userDetailsByIdService = async (id) => {
-//   try {
-//   } catch (error) {
-//     throw Error(error);
-//   }
-// };
-
 const loginDetailsService = async (data) => {
   try {
     let { email, password } = data;
     const details = await Users.findOne({ where: { email: email } });
     const currentUser = details ? details.toJSON() : undefined;
     if (!currentUser) {
-      throw Error('No record found');
+      throw 'Invalid user';
     }
-
-    if (!verifyEncryptedCode(password, currentUser.password)) {
-      throw Error('Invalid credentials');
+    if (!(await verifyEncryptedCode(password, currentUser.password))) {
+      throw 'Invalid credentials';
     }
     const token = createToken(currentUser);
-    return { name: currentUser.name, token: token };
+    return { user: { name: currentUser.name }, token: token };
   } catch (error) {
     throw Error(error);
   }

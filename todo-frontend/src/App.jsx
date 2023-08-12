@@ -9,7 +9,6 @@ import Login from './components/pages/before-login/Login';
 import Register from './components/pages/before-login/Register';
 import MasterLayout from './components/layouts/MasterLayout';
 import Todos from './components/pages/after-login/Todo/Todos';
-
 const router = createBrowserRouter([
   {
     path: '',
@@ -38,7 +37,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <>
+      <RouterProvider router={router} />
+    </>
+  );
 }
 
 export default App;

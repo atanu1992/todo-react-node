@@ -1,58 +1,115 @@
-// import { useForm } from 'react-hook-form';
-const AddTodo = () => {
-  // https://dribbble.com/shots/15185058-Collection-Tasks
-  // const {
-  //   register,
-  //   handleSubmit,
-  //   formState: { errors },
-  // } = useForm();
+import { useForm } from 'react-hook-form';
+import { useDispatch, useSelector } from 'react-redux';
+import {
+  addTodo,
+  clearCurrentTodo,
+  updateTodo,
+} from '../../../../api/reducers/todoSlice';
+import { AiOutlinePlusCircle } from 'react-icons/ai';
+import { MdOutlineCancel } from 'react-icons/md';
+import { BsPencil } from 'react-icons/bs';
+import { toast, ToastContainer } from 'react-toastify';
+import { useEffect, useState } from 'react';
 
-  // const onAddTodo = (data) => {
-  //   console.log(data);
-  // };
+const AddTodo = () => {
+  const dispatch = useDispatch();
+  const currentTodo = useSelector((state) => state.todo.currentTodo);
+  const [editTodo, setEditTodo] = useState(null);
+  const {
+    register,
+    handleSubmit,
+    reset,
+    setValue,
+    formState: { errors: formErrors },
+  } = useForm();
+
+  const onAddTodo = async (data) => {
+    let result = undefined;
+    if (editTodo) {
+      result = await dispatch(updateTodo({ editTodo, data }));
+    } else {
+      result = await dispatch(addTodo(data));
+    }
+
+    if (!result.error) {
+      reset();
+      toast.success(
+        editTodo ? 'Todo updated successfully' : 'Todo added successfully',
+        {
+          position: 'top-right',
+          autoClose: 5000,
+          hideProgressBar: false,
+          closeOnClick: true,
+          pauseOnHover: true,
+          progress: undefined,
+          theme: 'light',
+        }
+      );
+      if (editTodo) {
+        setEditTodo(null);
+      }
+    }
+  };
+
+  const cancelUpdate = () => {
+    dispatch(clearCurrentTodo());
+    setEditTodo(null);
+    reset();
+  };
+  useEffect(() => {
+    if (currentTodo && currentTodo.length) {
+      setValue('todoText', currentTodo[0].todoText);
+      document.getElementById('add-todo-textarea').focus();
+      setEditTodo(currentTodo[0].id);
+    }
+  }, [currentTodo, setValue]);
   return (
-    <section className="add-todo-section">
-      <form className="bg-white shadow-md rounded px-8 pt-6 pb-8 mb-4">
-        <div className="mb-4">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="username"
-          >
-            Username
-          </label>
-          <input
-            className="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline"
-            id="username"
-            type="text"
-            placeholder="Username"
-          />
-        </div>
-        <div className="mb-6">
-          <label
-            className="block text-gray-700 text-sm font-bold mb-2"
-            htmlFor="password"
-          >
-            Password
-          </label>
-          <input
-            className="shadow appearance-none border border-red-500 rounded w-full py-2 px-3 text-gray-700 mb-3 leading-tight focus:outline-none focus:shadow-outline"
-            id="password"
-            type="password"
-            placeholder="******************"
-          />
-          <p className="text-red-500 text-xs italic">
-            Please choose a password.
-          </p>
-        </div>
-        <div className="flex items-center justify-between">
-          <button
-            className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline"
-            type="button"
-          >
-            Sign In
-          </button>
+    <section className="add-todo-section my-2 px-2">
+      <ToastContainer />
+      <form method="post" onSubmit={handleSubmit(onAddTodo)}>
+        <label
+          htmlFor="website-admin"
+          className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+        >
+          Add Todo
+        </label>
+        <div className="flex">
+          <textarea
+            id="add-todo-textarea"
+            htmlFor="4"
+            name="todoText"
+            className="block p-2.5 w-full text-sm text-gray-900 bg-gray-50 rounded-lg border border-gray-300 focus:ring-blue-500 focus:border-blue-500 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+            placeholder="Add todo"
+            {...register('todoText', {
+              required: 'Enter todo',
+            })}
+          ></textarea>
+
+          {editTodo ? (
+            <div className="inline-flex items-center space-x-2 px-2 text-gray-900 rounded-r-md bg-[#D63691]">
+              <button type="submit">
+                <BsPencil className="font-medium w-5 h-5 cursor-pointer" />
+              </button>
+              <MdOutlineCancel
+                className="font-medium w-5 h-5 cursor-pointer"
+                onClick={() => cancelUpdate()}
+              />
+            </div>
+          ) : (
+            <button
+              type="submit"
+              className="inline-flex items-center cursor-pointer px-3 text-sm text-gray-900 rounded-r-md bg-[#D63691]"
+            >
+              <AiOutlinePlusCircle className="font-medium w-6 h-6" />
+            </button>
+          )}
         </div>
       </form>
+      {formErrors?.todoText && formErrors?.todoText?.message && (
+        <span className="text-red-500 text-sm mt-1">
+          {formErrors?.todoText?.message}
+        </span>
+      )}
     </section>
   );
 };

@@ -1,31 +1,30 @@
 import { Link, useNavigate } from 'react-router-dom';
 import LoginTodo from '../../../assets/images/todo.png';
 import { useForm } from 'react-hook-form';
-import { useDispatch, useSelector } from 'react-redux';
-import { login } from '../../../api/reducers/AuthSlice';
 import { nanoid } from '@reduxjs/toolkit';
 import { BiLoaderCircle } from 'react-icons/bi';
+import { useDispatch, useSelector } from 'react-redux';
+import { login } from '../../../api/reducers/AuthSlice';
 
 const Login = () => {
-  const dispatch = useDispatch();
   const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors: loginErrors },
   } = useForm();
-  const { loading, error } = useSelector((state) => ({ ...state.auth }));
-  const onLoginSubmit = (data) => {
-    dispatch(login({ userInput: data })).then((result) => {
-      if (!result?.error) {
-        navigate('/todos');
-      }
-    });
+  const onLoginSubmit = async (data) => {
+    const result = await dispatch(login(data));
+    if (!result.error) {
+      navigate('/todos');
+    }
   };
 
   return (
     <>
-      <section className="bg-gray-50 dark:bg-gray-900">
+      <section className="bg-gray-50 dark:bg-gray-900 min-h-screen">
         <div className="flex flex-col items-center justify-center px-6 py-8 mx-auto md:h-screen lg:py-0">
           <Link
             to="/login"
@@ -43,9 +42,9 @@ const Login = () => {
                 <div className="my-2 p-2 w-full bg-red-500 text-white rounded-md text-center">
                   {Array.isArray(error) && error.length ? (
                     <ul>
-                      {error.map((err) => {
+                      {error.map((err, i) => {
                         return (
-                          <li key={nanoid}>
+                          <li key={nanoid + 'err_' + i}>
                             {err.message.charAt(0).toUpperCase() +
                               err.message.slice(1)}
                           </li>
@@ -85,9 +84,9 @@ const Login = () => {
                       },
                     })}
                   />
-                  {errors?.email && errors?.email?.message && (
+                  {loginErrors?.email && loginErrors?.email?.message && (
                     <span className="text-red-500 text-sm mt-1">
-                      {errors?.email?.message}
+                      {loginErrors?.email?.message}
                     </span>
                   )}
                 </div>
@@ -108,9 +107,9 @@ const Login = () => {
                       required: 'Password is required',
                     })}
                   />
-                  {errors?.password && errors?.password?.message && (
+                  {loginErrors?.password && loginErrors?.password?.message && (
                     <span className="text-red-500 text-sm mt-1">
-                      {errors?.password?.message}
+                      {loginErrors?.password?.message}
                     </span>
                   )}
                 </div>

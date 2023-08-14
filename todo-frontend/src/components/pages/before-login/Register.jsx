@@ -1,60 +1,25 @@
-import { Link, useNavigate } from 'react-router-dom';
-import LoginTodo from '../../../assets/images/todo.png';
 import { useForm } from 'react-hook-form';
-import axios from 'axios';
-import { useRef } from 'react';
+import { useDispatch, useSelector } from 'react-redux';
+import { Link, useNavigate } from 'react-router-dom';
+import todoLogo from '../../../assets/images/todo.png';
+import { BiLoaderCircle } from 'react-icons/bi';
+import { nanoid } from '@reduxjs/toolkit';
+import { registerUser } from '../../../api/reducers/AuthSlice';
 
 const Register = () => {
-  let navigation = useNavigate();
-  let messageInitialState = { type: null, message: null };
-  let registerMessage = useRef(messageInitialState);
+  let navigate = useNavigate();
+  let dispatch = useDispatch();
+  const { loading, error } = useSelector((state) => state.auth);
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors: regErrors },
   } = useForm();
-  const onSubmit = (data) => {
-    registerMessage.current = messageInitialState;
-    let url = import.meta.env.VITE_API_BASE_URL + 'user/add';
-    return axios
-      .post(url, data)
-      .then(function (response) {
-        if (response.status === 200) {
-          registerMessage.current = {
-            type: 'success',
-            message: 'Registration successfull',
-          };
-
-          setTimeout(() => {
-            registerMessage.current = messageInitialState;
-            navigation('/login');
-          }, 3000);
-        }
-      })
-      .catch(function (error) {
-        if (error?.response?.status === 422) {
-          const { errors } = error.response.data;
-          registerMessage.current = {
-            type: 'error',
-            message: 'Validation error',
-          };
-          if (errors && errors.length) {
-            let errorHtml = '';
-            errors.forEach((v) => {
-              errorHtml += v.message + ', ';
-            });
-            registerMessage.current = {
-              type: 'error',
-              message: errorHtml.replace(/, $/, ''),
-            };
-          }
-        } else {
-          let err = error.message
-            ? error.message
-            : 'Something went wrong. Please try again';
-          registerMessage.current = { type: 'error', message: err };
-        }
-      });
+  const onSubmit = async (data) => {
+    const result = await dispatch(registerUser(data));
+    if (!result.error) {
+      navigate('/todos');
+    }
   };
   return (
     <>
@@ -64,7 +29,7 @@ const Register = () => {
             to=""
             className="flex items-center mb-6 text-2xl font-semibold text-gray-900 dark:text-white"
           >
-            <img className="w-16 h-16 mr-2" src={LoginTodo} alt="logo" />
+            <img className="w-16 h-16 mr-2" src={todoLogo} alt="logo" />
             Todo App
           </Link>
           <div className="w-full bg-white rounded-lg shadow dark:border md:mt-0 sm:max-w-md xl:p-0 dark:bg-gray-800 dark:border-gray-700">
@@ -72,15 +37,24 @@ const Register = () => {
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                 Create account
               </h1>
-              {registerMessage && registerMessage.current.message ? (
-                <div
-                  className={`my-2 p-2 w-full text-white rounded-md text-center ${
-                    registerMessage.current.type === 'error'
-                      ? 'bg-red-500'
-                      : 'bg-green-500'
-                  }`}
-                >
-                  {registerMessage.current.message}
+              {error ? (
+                <div className="my-2 p-2 w-full bg-red-500 text-white rounded-md text-center">
+                  {Array.isArray(error) && error.length ? (
+                    <ul>
+                      {error.map((err, i) => {
+                        return (
+                          <li key={nanoid + 'err_' + i}>
+                            {err.message.charAt(0).toUpperCase() +
+                              err.message.slice(1)}
+                          </li>
+                        );
+                      })}
+                    </ul>
+                  ) : error?.message ? (
+                    error.message
+                  ) : (
+                    error
+                  )}
                 </div>
               ) : null}
               <form
@@ -110,9 +84,9 @@ const Register = () => {
                       },
                     })}
                   />
-                  {errors?.name && errors?.name?.message && (
+                  {regErrors?.name && regErrors?.name?.message && (
                     <span className="text-red-500 text-sm mt-1">
-                      {errors?.name?.message}
+                      {regErrors?.name?.message}
                     </span>
                   )}
                 </div>
@@ -138,9 +112,9 @@ const Register = () => {
                       },
                     })}
                   />
-                  {errors?.email && errors?.email?.message && (
+                  {regErrors?.email && regErrors?.email?.message && (
                     <span className="text-red-500 text-sm mt-1">
-                      {errors?.email?.message}
+                      {regErrors?.email?.message}
                     </span>
                   )}
                 </div>
@@ -169,17 +143,28 @@ const Register = () => {
                       },
                     })}
                   />
-                  {errors?.password && errors?.password?.message && (
+                  {regErrors?.password && regErrors?.password?.message && (
                     <span className="text-red-500 text-sm mt-1">
-                      {errors?.password?.message}
+                      {regErrors?.password?.message}
                     </span>
                   )}
                 </div>
-                <input
-                  type="submit"
-                  className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-primary-600 dark:hover:bg-primary-700 dark:focus:ring-primary-800 bg-blue-500 cursor-pointer"
-                  value="Sign Up"
-                />
+                {loading ? (
+                  <button
+                    disabled
+                    type="button"
+                    className="w-full flex items-center justify-center text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 bg-blue-500 rounded-lg px-5 py-2.5 mr-2 dark:bg-blue-600 cursor-not-allowed"
+                  >
+                    <BiLoaderCircle className="animate-spin" />
+                    &nbsp;&nbsp;Sign Up
+                  </button>
+                ) : (
+                  <input
+                    type="submit"
+                    className="w-full text-white bg-primary-600 hover:bg-primary-700 focus:ring-4 focus:outline-none focus:ring-primary-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center bg-blue-500 cursor-pointer"
+                    value="Sign Up"
+                  />
+                )}
                 <p className="text-sm font-light text-gray-500 dark:text-gray-400">
                   Already have account? ?&nbsp;&nbsp;
                   <Link

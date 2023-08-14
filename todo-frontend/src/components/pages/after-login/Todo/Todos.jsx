@@ -1,11 +1,13 @@
 import AddTodo from './AddTodo';
 import ListTodo from './ListTodo';
+import Navbar from './Navbar';
 
 const Todos = () => {
   return (
     <>
-      <div className="h-screen w-full bg-[#040406] flex justify-center">
-        <div className="container mx-auto">
+      <div className="w-full">
+        <Navbar />
+        <div className="container mx-auto px-2">
           <AddTodo />
           <ListTodo />
         </div>

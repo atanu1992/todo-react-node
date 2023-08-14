@@ -1,6 +1,29 @@
 const { Todos } = require('../../models/todos.model');
 
 /**
+ * List all todos
+ * @return array
+ */
+const getAllTodos = async (userId) => {
+  try {
+    const roles = await Todos.findAll({
+      where: {
+        status: 'Y',
+        userId: userId,
+      },
+      order: [['id', 'DESC']],
+    });
+    let rolesData = Object.keys(roles).length
+      ? roles.map((role) => role.toJSON())
+      : [];
+    return rolesData;
+    return;
+  } catch (error) {
+    throw error;
+  }
+};
+
+/**
  * Add new todo
  * @param {data} object
  * @returns object
@@ -51,7 +74,7 @@ const removeTodoService = async (id) => {
         },
       }
     );
-    return remove;
+    return remove ? true : false;
   } catch (error) {
     throw Error(error);
   }
@@ -66,7 +89,7 @@ const removeTodoService = async (id) => {
 const toggleCompleteService = async (id, status) => {
   try {
     const [changeCompleteStatus] = await Todos.update(
-      { status: status },
+      { completed: status },
       {
         where: {
           id: id,
@@ -102,6 +125,7 @@ const updateTodo = async (id, details) => {
 };
 
 module.exports = {
+  getAllTodos,
   addNewTodoService,
   todoDetailsByIdService,
   removeTodoService,

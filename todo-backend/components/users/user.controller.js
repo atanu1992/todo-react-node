@@ -14,12 +14,9 @@ exports.addUser = async (req, res, next) => {
     let encryptPassword = await generateEncryptedCode(value.password);
     value.password = encryptPassword;
     const newUsers = await addNewUserService(value);
-    return res.json({ status: true, details: newUsers });
+    return res.status(201).json({ status: true, details: newUsers });
   } catch (error) {
-    let err = error.message
-      ? error.message
-      : 'Something went wrong. Please try again later';
-    return res.status(400).json({ status: false, error: err });
+    next(error);
   }
 };
 
@@ -32,13 +29,6 @@ exports.loginDetails = async (req, res, next) => {
     const details = await loginDetailsService(value);
     return res.json({ status: true, details: details });
   } catch (error) {
-    let err = error.message
-      ? error.message
-      : 'Something went wrong. Please try again later';
-    return res.status(400).json({ status: false, error: err });
+    next(error);
   }
-};
-
-exports.getUserById = (req, res, next) => {
-  res.json({ status: 'hello world' });
 };

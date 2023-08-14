@@ -14,15 +14,21 @@ const addNewUserService = async (data) => {
       where: { email: data.email },
     });
     if (checkEmailExist?.toJSON()) {
-      throw `${data.email} already exists`;
+      throw Error(`${data.email} already exists`);
     }
     // add new user
     const newUser = await Users.create(data);
     const newUserDetails = newUser ? newUser.toJSON() : undefined;
     if (!newUserDetails) {
-      throw 'Failed to add user';
+      throw Error('Failed to add user');
     }
-    const { id, password, ...details } = newUserDetails;
+    const { id } = newUserDetails;
+
+    const details = await Users.findOne({ where: { id: id } });
+    const currentUser = details ? details.toJSON() : undefined;
+
+    const token = createToken(currentUser);
+    return { user: { name: currentUser.name }, token: token };
     return details;
   } catch (error) {
     throw Error(error);
@@ -35,10 +41,10 @@ const loginDetailsService = async (data) => {
     const details = await Users.findOne({ where: { email: email } });
     const currentUser = details ? details.toJSON() : undefined;
     if (!currentUser) {
-      throw 'Invalid user';
+      throw Error('Invalid user');
     }
     if (!(await verifyEncryptedCode(password, currentUser.password))) {
-      throw 'Invalid credentials';
+      throw Error('Invalid credentials');
     }
     const token = createToken(currentUser);
     return { user: { name: currentUser.name }, token: token };

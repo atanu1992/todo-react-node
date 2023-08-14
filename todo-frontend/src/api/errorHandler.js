@@ -7,16 +7,13 @@ const errorHandler = (errorsData) => {
 
   if (statusCode) {
     switch (statusCode) {
+      case 403:
+        break;
       case 422:
         errors.message = errorsData?.response?.data?.errors
           ? errorsData.response.data.errors
           : 'Validation error';
         break;
-
-      case 500:
-        errors.message = errorsData.message;
-        break;
-
       default:
         errors.message = errorsData?.response?.data?.error
           ? errorsData.response.data.error

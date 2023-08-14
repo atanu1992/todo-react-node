@@ -4,7 +4,7 @@ import errorHandler from '../errorHandler';
 
 export const login = createAsyncThunk(
   'auth/login',
-  async ({ userInput }, { rejectWithValue }) => {
+  async (userInput, { rejectWithValue }) => {
     try {
       const response = await api.post('/user/login', userInput);
       if (response.status === 200 && response?.data?.details) {
@@ -19,12 +19,16 @@ export const login = createAsyncThunk(
   }
 );
 
-export const register = createAsyncThunk(
+export const registerUser = createAsyncThunk(
   'auth/register',
-  async ({ userInput }, { rejectWithValue }) => {
+  async (userInput, { rejectWithValue }) => {
     try {
       const response = await api.post('/user/register', userInput);
-      return response.data;
+      if (response.status === 201 && response?.data?.details) {
+        return response.data.details;
+      } else {
+        throw Error('Failed to register user');
+      }
     } catch (err) {
       return rejectWithValue(err.response.data);
     }
@@ -40,14 +44,10 @@ const authSlice = createSlice({
     loading: false,
   },
   reducers: {
-    setCredentials: (state, action) => {
-      const { user, token } = action.payload;
-      state.user = user;
-      state.token = token;
-    },
     logout: (state) => {
       state.user = null;
       state.token = null;
+      localStorage.removeItem('userToken');
     },
   },
   extraReducers: (builder) => {
@@ -69,8 +69,26 @@ const authSlice = createSlice({
         state.error = action?.payload?.message
           ? action.payload.message
           : action.error.message;
+      })
+      .addCase(registerUser.pending, (state) => {
+        state.loading = true;
+        state.error = null;
+      })
+      .addCase(registerUser.fulfilled, (state, action) => {
+        const { user, token } = action.payload;
+        state.loading = false;
+        state.user = user;
+        state.token = token;
+        state.error = null;
+        localStorage.setItem('userToken', token);
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.loading = false;
+        state.error = action?.payload?.message
+          ? action.payload.message
+          : action.error.message;
       });
   },
 });
-
+export const { logout } = authSlice.actions;
 export default authSlice.reducer;

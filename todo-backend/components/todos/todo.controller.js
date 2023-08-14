@@ -11,25 +11,43 @@ const {
   toggleCompleteService,
   updateTodo,
   removeTodoService,
+  getAllTodos,
 } = require('./todo.service');
+
+/**
+ * List of todos
+ */
+exports.getTodos = async (req, res, next) => {
+  try {
+    const { userId } = req;
+    const allRoles = await getAllTodos(userId)
+      .then((result) => {
+        return res.status(200).send({ status: true, details: result });
+      })
+      .catch((error) => {
+        throw error;
+      });
+  } catch (error) {
+    next(error);
+  }
+};
 
 /** Add new todo */
 exports.addTodo = async (req, res, next) => {
   try {
+    const { userId } = req;
     const { value, errors } = addTodoValidationSchema(req.body);
     if (errors) {
       return res.status(422).json({ status: false, errors: errors });
     }
+    value.userId = userId;
     const newTodo = await addNewTodoService(value);
     if (!newTodo) {
       throw Error('Failed to add todo.');
     }
-    return res.json({ status: true, details: newTodo });
+    return res.status(201).json({ status: true, details: newTodo });
   } catch (error) {
-    let err = error.message
-      ? error.message
-      : 'Something went wrong. Please try again later';
-    return res.status(400).json({ status: false, error: err });
+    next(error);
   }
 };
 
@@ -50,10 +68,7 @@ exports.getTodoById = async (req, res, next) => {
       details: todoDetails,
     });
   } catch (error) {
-    let err = error.message
-      ? error.message
-      : 'Something went wrong. Please try again later';
-    return res.status(400).json({ status: false, error: err });
+    next(error);
   }
 };
 
@@ -66,19 +81,19 @@ exports.updateTodo = async (req, res, next) => {
     }
 
     const { id, ...otherDetails } = value;
-    const todoDetails = await updateTodo(id, otherDetails);
-    if (!todoDetails) {
-      throw Error('No records found.');
+    const isUpdated = await updateTodo(id, otherDetails);
+    if (isUpdated) {
+      const todoDetailsById = await todoDetailsByIdService(id);
+      return res.json({
+        status: isUpdated,
+        details: todoDetailsById,
+      });
     }
     return res.json({
-      status: true,
-      details: todoDetails,
+      status: isUpdated,
     });
   } catch (error) {
-    let err = error.message
-      ? error.message
-      : 'Something went wrong. Please try again later';
-    return res.status(400).json({ status: false, error: err });
+    next(error);
   }
 };
 
@@ -92,15 +107,19 @@ exports.updateCompleteStatus = async (req, res, next) => {
     }
 
     const { id, ...otherDetails } = value;
-    const todoDetails = await toggleCompleteService(id, otherDetails);
+    const isUpdated = await toggleCompleteService(id, otherDetails.completed);
+    if (isUpdated) {
+      const todoDetailsById = await todoDetailsByIdService(id);
+      return res.json({
+        status: isUpdated,
+        details: todoDetailsById,
+      });
+    }
     return res.json({
-      status: todoDetails,
+      status: isUpdated,
     });
   } catch (error) {
-    let err = error.message
-      ? error.message
-      : 'Something went wrong. Please try again later';
-    return res.status(400).json({ status: false, error: err });
+    next(error);
   }
 };
 
@@ -111,17 +130,14 @@ exports.removeTodo = async (req, res, next) => {
     if (errors) {
       return res.status(422).json({ status: false, errors: errors });
     }
-    const todoDetails = await removeTodoService(value.id);
-    if (!todoDetails) {
+    const update = await removeTodoService(value.id);
+    if (!update) {
       throw Error('No records found.');
     }
     return res.json({
-      status: todoDetails,
+      status: update,
     });
   } catch (error) {
-    let err = error.message
-      ? error.message
-      : 'Something went wrong. Please try again later';
-    return res.status(400).json({ status: false, error: err });
+    next(error);
   }
 };

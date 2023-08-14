@@ -1,14 +1,12 @@
 const router = require('express').Router();
 const TodoController = require('../components/todos/todo.controller');
-const { verifyToken } = require('../middlewares/auth');
 
-router.post('/add', verifyToken, TodoController.addTodo);
-router.get('/:id', verifyToken, TodoController.getTodoById);
+router.post('/add', TodoController.addTodo);
+router.get('/:id', TodoController.getTodoById);
 router.patch(
   '/update-complete-status/:id',
-  verifyToken,
   TodoController.updateCompleteStatus
 );
-router.put('/:id', verifyToken, TodoController.updateTodo);
-router.delete('/:id', verifyToken, TodoController.removeTodo);
+router.put('/:id', TodoController.updateTodo);
+router.delete('/:id', TodoController.removeTodo);
 module.exports = router;
